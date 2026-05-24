@@ -196,9 +196,11 @@ public class DlgOrdenSoporte extends JDialog implements ActionListener {
 		cboClientes.setBounds(174, 88, 251, 26);
 		getContentPane().add(cboClientes);
 
-		habilitarEntradas(false);
+		habilitarEntradas(true);
 		habilitarBotones(true);
 		cargarComboBoxActividad();
+	
+		
 	}
 
 	public void actionPerformed(ActionEvent arg0) {
@@ -300,7 +302,61 @@ public class DlgOrdenSoporte extends JDialog implements ActionListener {
 		
 	}
 
+	void cargarTecnicos() {
+		EntityManager manager = JPAUtil.getEntityManager();
+		
+		String jpql = "select t from Tecnico t";
+		
+		try {
+			List<Tecnico> lstTecnicos = manager.createQuery(jpql, Tecnico.class).getResultList();
+			
+			for (Tecnico tecnico : lstTecnicos) {
+				cboTecnicos.addItem(tecnico);
+			}
+		} finally {
+			manager.close();
+		}
+	}
+	
+	
+	void cargarClientes() {
+			EntityManager manager = JPAUtil.getEntityManager();
+		
+		String jpql = "select c from Cliente c";
+		
+		try {
+			List<Cliente> lstClientes = manager.createQuery(jpql, Cliente.class).getResultList();
+			
+			for (Cliente cliente : lstClientes) {
+				cboClientes.addItem(cliente);
+			}
+		} finally {
+			manager.close();
+		}
+	}
 	void adicionar() {
+		String detalleIncidencia = txtDetalleIncidencia.getText();
+		Tecnico tecnico = (Tecnico)cboTecnicos.getSelectedItem();
+		Cliente cliente = (Cliente)cboClientes.getSelectedItem();
+		Double monto = Double.parseDouble(txtMonto.getText());
+		
+		EntityManager manager = JPAUtil.getEntityManager();
+		
+		try {
+			OrdenSoporte ordenSoporte = new OrdenSoporte(null, null, tecnico, cliente, monto, detalleIncidencia);
+		
+			manager.getTransaction().begin();
+			manager.persist(ordenSoporte);
+			manager.getTransaction().commit();
+			
+			mensajeInfo("Orden de soporte registrada");
+			limpiar();
+		} catch (Exception e) {
+			mensajeError("Error en la transaccion");
+			e.printStackTrace();
+		}finally {
+			manager.close();
+		}
 		
 	}
 

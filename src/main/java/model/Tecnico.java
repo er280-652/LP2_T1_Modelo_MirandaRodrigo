@@ -39,4 +39,9 @@ public class Tecnico {
 		default : return "Desconocido";
 		}
 	}
+	
+	@Override
+	public String toString() {
+		return nombre;
+	}
 }

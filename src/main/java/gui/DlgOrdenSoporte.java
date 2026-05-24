@@ -18,7 +18,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
+import javax.swing.JTextField;import org.hibernate.type.descriptor.java.LocalDateJavaDescriptor;
 
 import model.Cliente;
 import model.OrdenSoporte;
@@ -361,7 +361,25 @@ public class DlgOrdenSoporte extends JDialog implements ActionListener {
 	}
 
 	void consultar() {
-
+		Integer nroOrden = Integer.parseInt(txtNroOrdenSoporte.getText());
+		
+		EntityManager manager = JPAUtil.getEntityManager();
+		
+		try {
+			OrdenSoporte ordenSoporte = manager.find(OrdenSoporte.class, nroOrden);
+			if (ordenSoporte ==null) {
+				mensajeAdvertencia("Orden de soporte no encontrada");
+				return;
+			}
+			
+			txtDetalleIncidencia.setText(ordenSoporte.getDetalleIncidencia());
+			cboTecnicos.setSelectedItem(ordenSoporte.getIdTecnico());
+			cboClientes.setSelectedItem(ordenSoporte.getIdCliente());
+			txtMonto.setText(ordenSoporte.getMonto()+"");
+			txtFechaRegistro.setText(ordenSoporte.getFechaRegistro()+"");
+		} finally {
+			manager.close();
+		}
 	}
 
 	void modificar() {

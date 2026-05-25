@@ -196,11 +196,11 @@ public class DlgOrdenSoporte extends JDialog implements ActionListener {
 		cboClientes.setBounds(174, 88, 251, 26);
 		getContentPane().add(cboClientes);
 
-		habilitarEntradas(true);
+		habilitarEntradas(false);
 		habilitarBotones(true);
 		cargarComboBoxActividad();
-	
-		
+		cargarTecnicos();
+		cargarClientes();
 	}
 
 	public void actionPerformed(ActionEvent arg0) {
@@ -285,8 +285,8 @@ public class DlgOrdenSoporte extends JDialog implements ActionListener {
 		List<OrdenSoporte> lstOrdenes = manager.createQuery(jpql, OrdenSoporte.class).getResultList();
 		
 		for (OrdenSoporte ordenSoporte :lstOrdenes) {
-			Tecnico tecnico = ordenSoporte.getIdTecnico();
-			Cliente cliente = ordenSoporte.getIdCliente();
+			Tecnico tecnico = ordenSoporte.getTecnico();
+			Cliente cliente = ordenSoporte.getCliente();
 			
 			imprimir("Nro de orden.......: " + ordenSoporte.getNroOrden());
 			imprimir("Fecha de registro.......: "+ ordenSoporte.getFechaRegistro());
@@ -373,17 +373,53 @@ public class DlgOrdenSoporte extends JDialog implements ActionListener {
 			}
 			
 			txtDetalleIncidencia.setText(ordenSoporte.getDetalleIncidencia());
-			cboTecnicos.setSelectedItem(ordenSoporte.getIdTecnico());
-			cboClientes.setSelectedItem(ordenSoporte.getIdCliente());
+			cboTecnicos.setSelectedItem(ordenSoporte.getTecnico());
+			cboClientes.setSelectedItem(ordenSoporte.getCliente());
 			txtMonto.setText(ordenSoporte.getMonto()+"");
 			txtFechaRegistro.setText(ordenSoporte.getFechaRegistro()+"");
+			
+			habilitarOk();
 		} finally {
 			manager.close();
 		}
 	}
 
 	void modificar() {
-
+		Integer nroOrden = Integer.parseInt(txtNroOrdenSoporte.getText());
+		String detalleIncidencia = txtDetalleIncidencia.getText();
+		Tecnico tecnico = (Tecnico) cboTecnicos.getSelectedItem();
+		Cliente cliente = (Cliente) cboClientes.getSelectedItem();
+		Double monto = Double.parseDouble(txtMonto.getText());
+		
+		EntityManager manager = JPAUtil.getEntityManager();
+		
+		try {
+			OrdenSoporte ordenSoporte = manager.find(OrdenSoporte.class, nroOrden);
+			
+			if(ordenSoporte ==null) {
+				mensajeError("No existe el numero de orden");
+				return;
+			}
+			
+			ordenSoporte.setDetalleIncidencia(detalleIncidencia);
+			ordenSoporte.setTecnico(tecnico);
+			ordenSoporte.setCliente(cliente);
+			ordenSoporte.setMonto(monto);
+			
+	
+			manager.getTransaction().begin();
+			manager.merge(ordenSoporte);
+			manager.getTransaction().commit();
+			
+			mensajeInfo("Orden de soporte actualizada");
+			limpiar();
+		} catch (Exception e) {
+			mensajeError("Error al actualizar los datos");
+			e.printStackTrace();
+		}finally {
+			manager.close();
+		}
+		
 	}
 
 	void eliminar() {
